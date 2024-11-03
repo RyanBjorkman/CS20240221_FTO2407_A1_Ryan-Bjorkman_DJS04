@@ -339,7 +339,7 @@ function handleBookListClick(event) {
 }
 
 // Attach the event listener for clicking on book items
-document.querySelector('[data-list-items]').addEventListener('click', handleBookClick);
+document.querySelector('[data-list-items]').addEventListener('click', handleBookListClick);
 
 
 // Define the BookPreview component
