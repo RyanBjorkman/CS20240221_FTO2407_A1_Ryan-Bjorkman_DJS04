@@ -297,12 +297,22 @@ document.querySelector('[data-list-button]').addEventListener('click', handlePag
  * Example: This function is called when the user clicks on a specific book to learn more about it.
 */
 function displayBookDetails(book) {
-    document.querySelector('[data-list-active]').open = true;
-    document.querySelector('[data-list-blur]').src = book.image;
-    document.querySelector('[data-list-image]').src = book.image;
-    document.querySelector('[data-list-title]').innerText = book.title;
-    document.querySelector('[data-list-subtitle]').innerText = `${authors[book.author]} (${new Date(book.published).getFullYear()})`;
-    document.querySelector('[data-list-description]').innerText = book.description;
+    // Create or select the BookDetail component
+    let bookDetail = document.querySelector('book-detail');
+    if (!bookDetail) {
+        bookDetail = document.createElement('book-detail');
+        document.body.appendChild(bookDetail);
+    }
+
+    // Set attributes for the BookDetail component
+    bookDetail.setAttribute('title', book.title);
+    bookDetail.setAttribute('author', authors[book.author]);
+    bookDetail.setAttribute('image', book.image);
+    bookDetail.setAttribute('year', new Date(book.published).getFullYear());
+    bookDetail.setAttribute('description', book.description);
+
+    // Open the BookDetail overlay
+    bookDetail.open();
 }
 
 /** Handles click events on book list to display book details.
@@ -410,6 +420,114 @@ render() {
 customElements.define('book-preview', BookPreview);
 
     
+// Define the BookDetail component
+class BookDetail extends HTMLElement {
+    constructor() {
+        super();
+        
+        // Attach Shadow DOM for encapsulation
+        this.attachShadow({ mode: 'open' });
+
+        // Template for the Book Detail Component
+        const template = document.createElement('template');
+        template.innerHTML = `
+            <style>
+                .overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.7);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    visibility: hidden;
+                }
+                .overlay.open {
+                    visibility: visible;
+                }
+                .content {
+                    background: white;
+                    padding: 20px;
+                    max-width: 500px;
+                    border-radius: 8px;
+                }
+                .close-btn {
+                    float: right;
+                    cursor: pointer;
+                    font-size: 18px;
+                }
+                .book-image {
+                    width: 100%;
+                    height: auto;
+                }
+                .book-title {
+                    font-size: 1.5em;
+                    margin-top: 0;
+                }
+                .book-author,
+                .book-year {
+                    font-size: 1em;
+                    color: #555;
+                }
+                .book-description {
+                    font-size: 1em;
+                    margin-top: 1em;
+                }
+            </style>
+            <div class="overlay">
+                <div class="content">
+                    <span class="close-btn">&times;</span>
+                    <img class="book-image" src="" alt="Book Cover" />
+                    <h2 class="book-title"></h2>
+                    <div class="book-author"></div>
+                    <div class="book-year"></div>
+                    <p class="book-description"></p>
+                </div>
+            </div>
+        `;
+
+        this.shadowRoot.appendChild(template.content.cloneNode(true));
+
+        // Event listener for close button
+        this.shadowRoot.querySelector('.close-btn').addEventListener('click', () => this.close());
+    }
+
+    // Define observed attributes
+    static get observedAttributes() {
+        return ['title', 'author', 'image', 'year', 'description'];
+    }
+
+    // Update component when attributes change
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (oldValue !== newValue) {
+            this.render();
+        }
+    }
+
+    // Render the component with updated attributes
+    render() {
+        this.shadowRoot.querySelector('.book-title').textContent = this.getAttribute('title');
+        this.shadowRoot.querySelector('.book-author').textContent = `Author: ${this.getAttribute('author')}`;
+        this.shadowRoot.querySelector('.book-year').textContent = `Published: ${this.getAttribute('year')}`;
+        this.shadowRoot.querySelector('.book-description').textContent = this.getAttribute('description');
+        this.shadowRoot.querySelector('.book-image').src = this.getAttribute('image');
+    }
+
+    // Method to open the overlay
+    open() {
+        this.shadowRoot.querySelector('.overlay').classList.add('open');
+    }
+
+    // Method to close the overlay
+    close() {
+        this.shadowRoot.querySelector('.overlay').classList.remove('open');
+    }
+}
+
+// Register the custom element
+customElements.define('book-detail', BookDetail);
 
 
 // document.querySelector('[data-list-button]').innerText = `Show more (${books.length - BOOKS_PER_PAGE})`
