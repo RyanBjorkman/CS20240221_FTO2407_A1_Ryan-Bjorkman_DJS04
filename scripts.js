@@ -336,6 +336,85 @@ function handleBookListClick(event) {
 document.querySelector('[data-list-items]').addEventListener('click', handleBookClick);
 
 
+// Define the BookPreview component
+class BookPreview extends HTMLElement {
+    constructor() {
+        super();
+    
+        // Attach shadow DOM for encapsulation
+        this.attachShadow({ mode: 'open' });
+
+        // Template for the book preview component
+        const template = document.createElement('template');
+        template.innerHTML = `
+           <style>
+                .preview {
+                    display: flex;
+                    align-items: center;
+                    cursor: pointer;
+                }
+                .preview__image {
+                    width: 80px;
+                    height: 120px;
+                    object-fit: cover;
+                    margin-right: 16px;
+                }
+                .preview__info {
+                    display: flex;
+                    flex-direction: column;
+                }
+                .preview__title {
+                    font-size: 1.1em;
+                    margin: 0;
+                }
+                .preview__author {
+                    font-size: 0.9em;
+                    color: #666;
+                }
+            </style>
+            <button class="preview">
+                <img class="preview__image" src="" alt="Book cover" />
+                <div class="preview__info">
+                    <h3 class="preview__title"></h3>
+                    <div class="preview__author"></div>
+                </div>
+            </button>
+        `;
+
+        this.shadowRoot.appendChild(template.content.cloneNode(true));
+    }
+
+    //Called when the component is added to the DOM
+    connectedCallback() {
+        this.render();
+    }
+
+    // Observe changes in specific attributes
+    static get observedAttributes() {
+        return ['title', 'author', 'image', 'id'];
+    }
+
+    // Update the component when attributes change
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (oldValue !== newValue) {
+        this.render();
+    }
+}
+
+// Render the component with updated attributes
+render() {
+    this.shadowRoot.querySelector('.preview__title').innerText = this.getAttribute('title');
+    this.shadowRoot.querySelector('.preview__author').innerText = this.getAttribute('author');
+    this.shadowRoot.querySelector('.preview__image').src = this.getAttribute('image');
+    this.shadowRoot.querySelector('.preview').dataset.preview = this.getAttribute('id');
+    }
+}
+
+// Register the new element
+customElements.define('book-preview', BookPreview);
+
+    
+
 
 // document.querySelector('[data-list-button]').innerText = `Show more (${books.length - BOOKS_PER_PAGE})`
 // document.querySelector('[data-list-button]').disabled = (matches.length - (page * BOOKS_PER_PAGE)) > 0
